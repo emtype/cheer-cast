@@ -48,7 +48,7 @@ function UserPage() {
     // 사용자 접속 시작 알림
     const notifyUserJoin = async () => {
       try {
-        await fetch('http://localhost:3001/api/user-join', {
+        await fetch('/api/user-join', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -64,7 +64,7 @@ function UserPage() {
     // 앱 설정 불러오기
     const loadSettings = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/settings');
+        const response = await fetch('/api/settings');
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.settings) {
@@ -79,7 +79,7 @@ function UserPage() {
     // 사용자 통계 불러오기
     const loadUserStats = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/user-stats');
+        const response = await fetch('/api/user-stats');
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.userStats) {
@@ -96,7 +96,7 @@ function UserPage() {
     loadUserStats();
     
     // SSE 연결
-    const eventSource = new EventSource('http://localhost:3001/api/balloon-stream');
+    const eventSource = new EventSource('/api/balloon-stream');
     
     eventSource.onopen = () => {
       console.log('유저 페이지 SSE 연결 성공');
@@ -138,7 +138,7 @@ function UserPage() {
       const data = new Blob([JSON.stringify({ sessionId })], {
         type: 'application/json'
       });
-      navigator.sendBeacon('http://localhost:3001/api/user-leave', data);
+      navigator.sendBeacon('/api/user-leave', data);
     };
     
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -200,7 +200,7 @@ function UserPage() {
     createClickEffect(event, balloonType);
     
     try {
-      const response = await fetch('http://localhost:3001/api/balloon-click', {
+      const response = await fetch('/api/balloon-click', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -252,7 +252,7 @@ function UserPage() {
     createClickEffect(event, 'understand');
     
     try {
-      const response = await fetch('http://localhost:3001/api/understand-click', {
+      const response = await fetch('/api/understand-click', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -285,7 +285,7 @@ function UserPage() {
     setIsSendingText(true);
     
     try {
-      const response = await fetch('http://localhost:3001/api/send-message', {
+      const response = await fetch('/api/send-message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
