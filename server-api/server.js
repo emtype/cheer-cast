@@ -11,7 +11,12 @@ app.use(helmet({
   contentSecurityPolicy: false // SSE를 위해 CSP 비활성화
 }));
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://naver.com', 'https://*.naver.com'],
+  origin: [
+    'http://localhost:3000', 
+    'http://localhost:3001',
+    /https:\/\/.*\.railway\.app$/,
+    /https:\/\/.*\.up\.railway\.app$/
+  ],
   credentials: true
 }));
 app.use(express.json());
