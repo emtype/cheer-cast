@@ -1,5 +1,15 @@
 {
   "version": 2,
   "buildCommand": "cd client && yarn install && yarn build",
-  "outputDirectory": "client/build"
+  "outputDirectory": "client/build",
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
 }
