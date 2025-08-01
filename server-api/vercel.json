@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "cd client && rm -rf build node_modules/.cache && yarn install && yarn build",
+  "buildCommand": "cd client && yarn install && yarn build",
   "outputDirectory": "client/build",
   "routes": [
     {

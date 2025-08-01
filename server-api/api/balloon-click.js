@@ -1,4 +1,4 @@
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -12,8 +12,28 @@ export default function handler(req, res) {
   
   console.log(`🎈 풍선 클릭! ${balloonType} x${clicks}`);
   
-  // 실제 프로덕션에서는 브로드캐스트 로직이 필요하지만
-  // vercel serverless에서는 메모리 공유가 어려움
+  // 이벤트 시스템에 클릭 이벤트 추가
+  try {
+    const eventData = {
+      type: 'balloon-click',
+      data: {
+        balloonType,
+        clicks,
+        timestamp: new Date().toISOString()
+      }
+    };
+    
+    // events API 호출 (같은 도메인이므로 내부 호출)
+    await fetch(`${req.headers.origin || 'http://localhost:3000'}/api/events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(eventData),
+    });
+  } catch (error) {
+    console.error('이벤트 추가 실패:', error);
+  }
   
   res.json({ 
     success: true,
