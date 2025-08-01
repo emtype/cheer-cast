@@ -1,0 +1,27 @@
+{
+  "name": "cheercast-supporter-extension",
+  "version": "1.0.0",
+  "description": "CheerCast 응원봇: 실시간 풍선과 메시지로 함께 응원하세요!",
+  "main": "content.js",
+  "scripts": {
+    "build": "echo 'Chrome extension is ready!'",
+    "dev": "echo 'Load extension in Chrome Developer mode'",
+    "package": "zip -r cheercast-supporter-extension.zip . -x '*.git*' 'node_modules/*' '*.DS_Store*'"
+  },
+  "keywords": [
+    "chrome-extension",
+    "cheercast",
+    "balloon",
+    "animation",
+    "supporter",
+    "realtime",
+    "message"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/cheercast-supporter-extension"
+  }
+}

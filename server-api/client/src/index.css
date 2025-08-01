@@ -1,0 +1,258 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* Admin Page Styles */
+.App {
+  text-align: center;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.App-header {
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
+}
+
+.App-header h1 {
+  margin: 0 0 10px 0;
+  font-size: 2rem;
+}
+
+.connection-status {
+  font-size: 14px;
+  padding: 5px 15px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+.connection-status.connected {
+  background-color: #4caf50;
+  color: white;
+}
+
+.connection-status.disconnected {
+  background-color: #f44336;
+  color: white;
+}
+
+.App-main {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.control-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.status-card, .control-card, .info-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 20px;
+  text-align: left;
+}
+
+.status-card h2, .control-card h2, .info-card h2 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 1.25rem;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 5px;
+}
+
+.status-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.status-item .label {
+  font-weight: 600;
+  color: #555;
+}
+
+.status-item .value {
+  font-weight: 500;
+}
+
+.status-item .value.active {
+  color: #4caf50;
+}
+
+.status-item .value.inactive {
+  color: #f44336;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.input-group label {
+  font-weight: 600;
+  color: #333;
+}
+
+.input-group input {
+  padding: 10px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.input-group small {
+  color: #666;
+  font-size: 12px;
+}
+
+.primary-button, .secondary-button, .toggle-button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.primary-button {
+  background-color: #007bff;
+  color: white;
+}
+
+.primary-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.secondary-button {
+  background-color: #6c757d;
+  color: white;
+}
+
+.secondary-button:hover:not(:disabled) {
+  background-color: #545b62;
+}
+
+.toggle-button.active {
+  background-color: #dc3545;
+  color: white;
+}
+
+.toggle-button.inactive {
+  background-color: #28a745;
+  color: white;
+}
+
+.toggle-button:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.message {
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.message.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.info-card ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.info-card li {
+  margin-bottom: 8px;
+  color: #555;
+}
+
+/* Click particle animation */
+.click-particle {
+  position: absolute;
+  pointer-events: none;
+  font-size: 24px;
+  animation: particle-explosion 1s ease-out forwards;
+  z-index: 1000;
+}
+
+@keyframes particle-explosion {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--random-x), var(--random-y)) scale(0.5);
+  }
+}
+
+/* Balloon counter animation */
+.counter-animation {
+  animation: counter-float 1.5s ease-out forwards;
+  z-index: 20 !important;
+}
+
+@keyframes counter-float {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.8);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -10px) scale(1.1);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -15px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -25px) scale(0.9);
+  }
+}

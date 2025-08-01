@@ -1,0 +1,264 @@
+/* 풍선 애니메이션 스타일 */
+.floating-balloon {
+  position: fixed;
+  width: 80px;
+  height: 160px;
+  z-index: 999999;
+  pointer-events: none;
+  animation: float-up 15s linear forwards;
+  /* img 태그를 위한 설정 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 초기 위치를 화면 아래로 설정 */
+  bottom: -160px;
+}
+
+/* 피그마 풍선에는 이미 줄이 포함되어 있으므로 추가 세그먼트 제거 */
+
+/* 아름다운 풍선 올라가는 애니메이션 */
+@keyframes float-up {
+  0% {
+    bottom: -160px;
+    transform: translateX(0px) scale(0.8);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  10% {
+    bottom: 10vh;
+    transform: translateX(10px) scale(0.85);
+  }
+  20% {
+    bottom: 20vh;
+    transform: translateX(-5px) scale(0.9);
+  }
+  30% {
+    bottom: 30vh;
+    transform: translateX(15px) scale(0.95);
+  }
+  40% {
+    bottom: 40vh;
+    transform: translateX(-10px) scale(1);
+  }
+  50% {
+    bottom: 50vh;
+    transform: translateX(8px) scale(1.05);
+  }
+  60% {
+    bottom: 60vh;
+    transform: translateX(-12px) scale(1);
+  }
+  70% {
+    bottom: 70vh;
+    transform: translateX(6px) scale(0.95);
+  }
+  80% {
+    bottom: 80vh;
+    transform: translateX(-8px) scale(0.9);
+  }
+  90% {
+    bottom: 90vh;
+    transform: translateX(4px) scale(0.85);
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    bottom: calc(100vh + 200px);
+    transform: translateX(0px) scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* 애니메이션은 JavaScript에서 처리 */
+.floating-balloon.animated-sway {
+  animation: float-up 15s linear forwards;
+}
+
+/* 다양한 크기의 풍선들 (1:2 비율) */
+.balloon-small {
+  width: 60px;
+  height: 120px;
+}
+
+.balloon-medium {
+  width: 80px;
+  height: 160px;
+}
+
+.balloon-large {
+  width: 100px;
+  height: 200px;
+}
+
+/* 애니메이션 지연 클래스들 */
+.delay-1 { animation-delay: -1s; }
+.delay-2 { animation-delay: -2s; }
+.delay-3 { animation-delay: -3s; }
+.delay-4 { animation-delay: -4s; }
+.delay-5 { animation-delay: -5s; }
+.delay-6 { animation-delay: -6s; }
+.delay-7 { animation-delay: -7s; }
+
+/* 말풍선 스타일 */
+.speech-bubble {
+  position: fixed;
+  z-index: 999999;
+  pointer-events: none;
+  animation: speech-float 10s linear forwards;
+  bottom: -200px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', '맑은 고딕', sans-serif;
+  /* 화면 경계 넘침 방지 */
+  max-width: calc(100vw - 20px);
+  box-sizing: border-box;
+}
+
+.speech-bubble-content {
+  position: relative;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 12px 18px;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  max-width: 350px;
+  min-width: 100px;
+  word-wrap: break-word;
+  font-weight: 500;
+}
+
+/* 말풍선 색상 변형 */
+.speech-color-1 .speech-bubble-content {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.speech-color-1 .speech-bubble-tail {
+  border-top-color: #667eea;
+}
+
+.speech-color-2 .speech-bubble-content {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.speech-color-2 .speech-bubble-tail {
+  border-top-color: #f093fb;
+}
+
+.speech-color-3 .speech-bubble-content {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.speech-color-3 .speech-bubble-tail {
+  border-top-color: #4facfe;
+}
+
+.speech-bubble-text {
+  font-size: 16px;
+  line-height: 1.4;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  white-space: pre-line; /* 줄바꿈과 공백 보존 */
+  word-break: break-word; /* 긴 단어 줄바꿈 */
+}
+
+.speech-bubble-tail {
+  position: absolute;
+  bottom: -10px;
+  left: 30px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid #667eea;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* 말풍선 크기 변형 */
+.speech-small .speech-bubble-content {
+  padding: 10px 14px;
+  border-radius: 16px;
+}
+
+.speech-small .speech-bubble-text {
+  font-size: 14px;
+}
+
+.speech-small .speech-bubble-tail {
+  border-left-width: 8px;
+  border-right-width: 8px;
+  border-top-width: 8px;
+  left: 25px;
+  bottom: -8px;
+}
+
+.speech-medium .speech-bubble-content {
+  padding: 12px 18px;
+  border-radius: 20px;
+}
+
+.speech-medium .speech-bubble-text {
+  font-size: 16px;
+}
+
+.speech-large .speech-bubble-content {
+  padding: 16px 24px;
+  border-radius: 24px;
+}
+
+.speech-large .speech-bubble-text {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.speech-large .speech-bubble-tail {
+  border-left-width: 12px;
+  border-right-width: 12px;
+  border-top-width: 12px;
+  left: 35px;
+  bottom: -12px;
+}
+
+/* 말풍선 애니메이션 */
+@keyframes speech-float {
+  0% {
+    bottom: -200px;
+    transform: translateX(0px) scale(0.7);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+    transform: translateX(0px) scale(0.9);
+  }
+  15% {
+    bottom: 15vh;
+    transform: translateX(-8px) scale(1);
+  }
+  30% {
+    bottom: 30vh;
+    transform: translateX(12px) scale(1.02);
+  }
+  45% {
+    bottom: 45vh;
+    transform: translateX(-6px) scale(1);
+  }
+  60% {
+    bottom: 60vh;
+    transform: translateX(10px) scale(0.98);
+  }
+  75% {
+    bottom: 75vh;
+    transform: translateX(-4px) scale(0.95);
+  }
+  85% {
+    bottom: 85vh;
+    transform: translateX(2px) scale(0.9);
+    opacity: 1;
+  }
+  100% {
+    bottom: calc(100vh + 200px);
+    transform: translateX(0px) scale(0.7);
+    opacity: 0;
+  }
+}

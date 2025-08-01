@@ -1,0 +1,22 @@
+{
+  "name": "cheer-cast-api",
+  "version": "1.0.0",
+  "description": "Real-time balloon count API server with SSE and React admin",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build:client": "cd client && npm run build"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "keywords": ["sse", "realtime", "balloon", "api"],
+  "author": "",
+  "license": "MIT"
+}

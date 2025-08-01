@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "CheerCast 응원봇",
+  "version": "1.0",
+  "description": "CheerCast로 실시간 풍선과 메시지를 보내며 함께 응원하세요!",
+  "permissions": ["activeTab"],
+  "host_permissions": ["http://localhost:3001/*"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["balloon-animation.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["images/*", "*.png"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "icons": {
+    "16": "images/balloon1.png",
+    "48": "images/balloon1.png",
+    "128": "images/balloon1.png"
+  }
+}

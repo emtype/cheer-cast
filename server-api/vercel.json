@@ -1,0 +1,5 @@
+{
+  "version": 2,
+  "buildCommand": "cd client && yarn install && yarn build",
+  "outputDirectory": "client/build"
+}
