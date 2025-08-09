@@ -2,6 +2,8 @@
 
 /** @type {Array<Object>} 풍선 이벤트 큐 */
 let balloonQueue = [];
+const MAX_QUEUE_SIZE = 50; // 큐 최대 크기 제한
+let isProcessing = false;
 /** @type {EventSource|null} SSE 연결 객체 */
 let eventSource = null;
 
@@ -22,6 +24,19 @@ function getRandomElement(array) {
  */
 function getRandomInRange(min, max) {
   return Math.random() * (max - min) + min;
+}
+
+/**
+ * 큐에 이벤트를 안전하게 추가 (큐 크기 제한)
+ * @param {Object} eventData - 추가할 이벤트 데이터
+ */
+function addToQueue(eventData) {
+  // 큐가 가득 찬 경우 오래된 항목 제거
+  if (balloonQueue.length >= MAX_QUEUE_SIZE) {
+    balloonQueue.shift(); // 가장 오래된 항목 제거
+  }
+  
+  balloonQueue.push(eventData);
 }
 
 /**
@@ -143,21 +158,33 @@ function createSpeechBubble(message) {
 }
 
 /**
- * 풍선 큐를 처리하고 다음 처리를 예약
+ * 풍선 큐를 배치로 처리하고 다음 처리를 예약
  */
 function processBalloonQueue() {
-  if (balloonQueue.length > 0) {
-    const event = balloonQueue.shift();
-    
-    if (event.type === 'text-message') {
-      createSpeechBubble(event.message);
-    } else {
-      createBalloon(event.balloonType);
-    }
-  }
+  if (isProcessing) return;
   
-  // 다음 풍선 처리
-  const nextInterval = getRandomInRange(ANIMATION_CONSTANTS.QUEUE_INTERVAL_MIN, ANIMATION_CONSTANTS.QUEUE_INTERVAL_MAX);
+  isProcessing = true;
+  
+  // 큐가 너무 크면 배치 처리
+  const batchSize = balloonQueue.length > 20 ? 5 : 1;
+  const eventsToProcess = balloonQueue.splice(0, batchSize);
+  
+  eventsToProcess.forEach((event, index) => {
+    // 짧은 지연으로 순차 처리
+    setTimeout(() => {
+      if (event.type === 'text-message') {
+        createSpeechBubble(event.message);
+      } else {
+        createBalloon(event.balloonType);
+      }
+    }, index * 100); // 100ms 간격
+  });
+  
+  isProcessing = false;
+  
+  // 다음 풍선 처리 (큐가 많으면 빠르게)
+  const nextInterval = balloonQueue.length > 10 ? 200 : 
+                      getRandomInRange(ANIMATION_CONSTANTS.QUEUE_INTERVAL_MIN, ANIMATION_CONSTANTS.QUEUE_INTERVAL_MAX);
   setTimeout(processBalloonQueue, nextInterval);
 }
 
@@ -174,11 +201,11 @@ function connectToServer() {
       try {
         const eventData = JSON.parse(event.data);
         
-        // 이벤트를 큐에 추가
+        // 이벤트를 큐에 추가 (큐 크기 제한)
         if (eventData.type === 'balloon-click' || eventData.type === 'understand-click') {
-          balloonQueue.push(eventData);
+          addToQueue(eventData);
         } else if (eventData.type === 'text-message') {
-          balloonQueue.push(eventData);
+          addToQueue(eventData);
         }
         
       } catch (error) {

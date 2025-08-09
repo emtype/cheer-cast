@@ -21,6 +21,7 @@ const ANIMATION_CONSTANTS = {
   
   // 서버 URL
   SERVER_URL: 'https://cheer-cast-production.up.railway.app',
+  //SERVER_URL: 'http://localhost:3001',
   
   // 크기 클래스
   BALLOON_SIZES: ['balloon-small', 'balloon-medium', 'balloon-large'],

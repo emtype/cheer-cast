@@ -40,7 +40,7 @@ const sseClients = new Set();
 // 간단한 rate limiting을 위한 Map (IP별 요청 추적)
 const rateLimitMap = new Map();
 const RATE_LIMIT_WINDOW = 60000; // 1분
-const MAX_REQUESTS_PER_WINDOW = 60; // 분당 60회
+const MAX_REQUESTS_PER_WINDOW = 300; // 분당 300회 (대량 처리용)
 
 /**
  * 간단한 rate limiting 미들웨어
@@ -126,28 +126,63 @@ app.get('/api/balloon-stream', (req, res) => {
   });
 });
 
+// 브로드캐스트 큐 관리
+const broadcastQueue = [];
+let isBroadcasting = false;
+
 /**
- * 모든 SSE 클라이언트에게 이벤트 브로드캐스트
+ * 배치 브로드캐스트 처리
+ */
+async function processBroadcastQueue() {
+  if (isBroadcasting || broadcastQueue.length === 0) return;
+  
+  isBroadcasting = true;
+  const batch = broadcastQueue.splice(0, 10); // 한번에 10개씩 처리
+  
+  await Promise.all(batch.map(eventData => 
+    broadcastEventImmediate(eventData)
+  ));
+  
+  isBroadcasting = false;
+  
+  // 큐에 더 있으면 다음 배치 처리
+  if (broadcastQueue.length > 0) {
+    setImmediate(processBroadcastQueue);
+  }
+}
+
+/**
+ * 즉시 브로드캐스트 (내부용)
  * @param {Object} eventData - 브로드캐스트할 이벤트 데이터
  */
-function broadcastEvent(eventData) {
+async function broadcastEventImmediate(eventData) {
   const message = `data: ${JSON.stringify(eventData)}\n\n`;
   const failedClients = [];
   
-  sseClients.forEach(client => {
-    try {
-      // 연결 상태 확인
-      if (client.destroyed || client.finished) {
+  // 비동기 병렬 처리
+  const writePromises = Array.from(sseClients).map(client => 
+    new Promise((resolve) => {
+      try {
+        if (client.destroyed || client.finished) {
+          failedClients.push(client);
+          resolve();
+          return;
+        }
+        
+        client.write(message, (error) => {
+          if (error) {
+            failedClients.push(client);
+          }
+          resolve();
+        });
+      } catch (error) {
         failedClients.push(client);
-        return;
+        resolve();
       }
-      
-      client.write(message);
-    } catch (error) {
-      console.error('클라이언트 전송 실패:', error);
-      failedClients.push(client);
-    }
-  });
+    })
+  );
+  
+  await Promise.all(writePromises);
   
   // 실패한 클라이언트들을 정리
   failedClients.forEach(client => {
@@ -160,6 +195,15 @@ function broadcastEvent(eventData) {
       // 클라이언트 정리 실패는 조용히 처리
     }
   });
+}
+
+/**
+ * 모든 SSE 클라이언트에게 이벤트 브로드캐스트 (큐 기반)
+ * @param {Object} eventData - 브로드캐스트할 이벤트 데이터
+ */
+function broadcastEvent(eventData) {
+  broadcastQueue.push(eventData);
+  setImmediate(processBroadcastQueue);
 }
 
 /**
@@ -368,33 +412,35 @@ app.get('/api/user-stats', (req, res) => {
   });
 });
 
-// React 앱 서빙 (프로덕션)
+// API 상태 페이지 (React 빌드 없이)
+app.get('/', (req, res) => {
+  res.json({
+    name: "CheerCast API Server",
+    status: "running",
+    version: "1.0.0",
+    endpoints: {
+      "GET /api/settings": "앱 설정 조회",
+      "POST /api/settings": "앱 설정 변경",
+      "GET /api/balloon-stream": "SSE 연결",
+      "POST /api/balloon-click": "풍선 클릭 이벤트",
+      "POST /api/understand-click": "understand 클릭 이벤트", 
+      "POST /api/send-message": "텍스트 메시지 전송",
+      "POST /api/user-join": "사용자 세션 등록",
+      "POST /api/user-leave": "사용자 세션 해제",
+      "GET /api/user-stats": "사용자 통계 조회"
+    },
+    currentUsers: userStats.currentUsers,
+    totalVisits: userStats.totalVisits
+  });
+});
+
+// 나머지 모든 경로는 404
 app.get('*', (req, res) => {
-  const indexPath = path.join(__dirname, 'client/build', 'index.html');
-  
-  // 빌드 파일이 존재하는지 확인
-  const fs = require('fs');
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    // 빌드 파일이 없으면 개발 안내 메시지 표시
-    res.send(`
-      <html>
-        <head><title>Cheer Cast API</title></head>
-        <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-          <h1>🎈 CheerCast 응원봇 API Server</h1>
-          <p>CheerCast API 서버가 실행 중입니다!</p>
-          <h2>API 엔드포인트</h2>
-          <ul style="text-align: left; display: inline-block;">
-            <li>GET /api/balloon-stream - SSE 연결</li>
-            <li>POST /api/balloon-click - 풍선 클릭</li>
-            <li>POST /api/understand-click - understand 클릭</li>
-            <li>POST /api/send-message - 텍스트 메시지 전송</li>
-          </ul>
-        </body>
-      </html>
-    `);
-  }
+  res.status(404).json({
+    error: "Not Found",
+    message: "API endpoint not found",
+    availableEndpoints: "/api/*"
+  });
 });
 
 // 서버 시작

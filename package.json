@@ -1,0 +1,31 @@
+{
+  "name": "cheercast-performance-test",
+  "version": "1.0.0",
+  "description": "Performance testing suite for CheerCast application",
+  "main": "performance-test.js",
+  "scripts": {
+    "test:performance": "node performance-test.js",
+    "test:quick": "node performance-test-quick.js",
+    "test:local": "node performance-test-local.js",
+    "test:prod": "node performance-test-prod.js",
+    "test:prod-simple": "node performance-test-prod-simple.js",
+    "test:api": "node performance-test-api-direct.js",
+    "check:api": "node check-api.js",
+    "check:server": "node check-server.js",
+    "check:railway": "node check-railway.js",
+    "debug:prod": "node debug-prod.js",
+    "install-playwright": "npx playwright install chromium"
+  },
+  "keywords": [
+    "performance",
+    "testing",
+    "playwright",
+    "load-test",
+    "cheercast"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "playwright": "^1.40.0"
+  }
+}
