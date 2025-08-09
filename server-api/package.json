@@ -6,8 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "build": "cd client && npm install && npm run build",
-    "build:client": "cd client && npm run build"
+    "build": "cd client && npm install && CI=false npm run build",
+    "build:client": "cd client && CI=false npm run build",
+    "build:ci": "cd client && npm install && npm run build:ci"
   },
   "dependencies": {
     "cors": "^2.8.5",

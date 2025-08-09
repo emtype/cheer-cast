@@ -207,7 +207,7 @@ function UserPage() {
         throw new Error('풍선 클릭 처리 실패');
       }
       
-      const result = await response.json();
+      // const result = await response.json(); // 현재 사용하지 않음
       
       // 다음 클릭을 위해 새로운 랜덤 풍선 타입 설정
       const nextBalloonType = `balloon${Math.floor(Math.random() * 6) + 1}`;
