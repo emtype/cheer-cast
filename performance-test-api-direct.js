@@ -6,8 +6,8 @@
 const { chromium } = require('playwright');
 
 const API_CONFIG = {
-  CONCURRENT_USERS: 20,
-  MESSAGES_PER_USER: 20,
+  CONCURRENT_USERS: 100,
+  MESSAGES_PER_USER: 100,
   API_BASE_URL: 'https://cheer-cast-production.up.railway.app',
   MESSAGE_INTERVAL_MS: 100,
   USER_SPAWN_INTERVAL_MS: 100,
@@ -46,8 +46,8 @@ async function simulateApiUser(userId, browser) {
     
     page = await context.newPage();
     
-    // 1. 먼저 빈 페이지를 로드 (API 호출용)
-    await page.goto('about:blank');
+    // 1. 실제 도메인 페이지를 로드 (CORS 문제 해결용)
+    await page.goto(API_CONFIG.API_BASE_URL);
     
     // 2. 세션 등록 API 호출
     console.log(`🌐 API User ${userId}: Registering session...`);
@@ -113,7 +113,10 @@ async function simulateApiUser(userId, browser) {
         
         if (response.ok) {
           apiMetrics.totalMessagesSent++;
-          console.log(`✅ API User ${userId}: Message ${msgIndex + 1} sent (${responseTime}ms)`);
+          // 매 10번째 메시지마다만 로그 출력 (출력 량 감소)
+          if ((msgIndex + 1) % 10 === 0) {
+            console.log(`✅ API User ${userId}: Message ${msgIndex + 1} sent (${responseTime}ms)`);
+          }
         } else {
           if (response.status === 429) {
             apiMetrics.rateLimits++;

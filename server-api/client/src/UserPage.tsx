@@ -204,6 +204,10 @@ function UserPage() {
       });
       
       if (!response.ok) {
+        if (response.status === 429) {
+          alert('요청이 너무 많습니다. 잠시 후 다시 시도해주세요.');
+          return;
+        }
         throw new Error('풍선 클릭 처리 실패');
       }
       
@@ -254,6 +258,10 @@ function UserPage() {
       });
       
       if (!response.ok) {
+        if (response.status === 429) {
+          alert('요청이 너무 많습니다. 잠시 후 다시 시도해주세요.');
+          return;
+        }
         throw new Error('understand 클릭 처리 실패');
       }
       
@@ -287,6 +295,10 @@ function UserPage() {
       });
       
       if (!response.ok) {
+        if (response.status === 429) {
+          alert('요청이 너무 많습니다. 잠시 후 다시 시도해주세요.');
+          return;
+        }
         throw new Error('텍스트 메시지 전송 실패');
       }
       
