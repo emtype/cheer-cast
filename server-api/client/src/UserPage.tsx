@@ -36,6 +36,7 @@ function UserPage() {
   // 폭죽 효과 상태 관리
   const [showFireworks, setShowFireworks] = useState(false);
   const [fireworksData, setFireworksData] = useState({ imageNumber: 1, message: "" });
+  const [fireworksIndex, setFireworksIndex] = useState(0);
   
   // 세션 ID 생성 (탭마다 고유, 새로고침해도 유지)
   const [sessionId] = useState(() => {
@@ -241,10 +242,7 @@ function UserPage() {
       
       // 10번마다 폭죽 효과 표시
       if (newClickCount % 10 === 0 && newClickCount > 0) {
-        console.log(`🎉 10의 배수 달성! ${newClickCount}번째 클릭 - 폭죽 효과 시작!`);
-        
-        // 랜덤 이미지와 메시지 한번만 선택
-        const randomImageNumber = Math.floor(Math.random() * 3) + 1;
+        // 순서대로 이미지와 메시지 선택
         const encouragementMessages = [
           "AI 전사가 됐구만, 이제 전장에서 검증해 봅시다",
           "오늘 배운 건 데모고, 진짜는 내일 여러분의 모니터 앞에서 시작됩니다.",
@@ -257,10 +255,17 @@ function UserPage() {
           "속도가 무기인 시대, AI가 가속페달입니다. 밟으세요.",
           "여러분의 첫 AI 실전 프로젝트, 지금부터 카운트다운 시작입니다."
         ];
-        const randomMessage = encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
+        
+        // 순서대로 이미지 선택 (1, 2, 3 반복)
+        const imageNumber = (fireworksIndex % 3) + 1;
+        // 순서대로 메시지 선택
+        const message = encouragementMessages[fireworksIndex % encouragementMessages.length];
         
         // 폭죽 데이터 설정
-        setFireworksData({ imageNumber: randomImageNumber, message: randomMessage });
+        setFireworksData({ imageNumber, message });
+        
+        // 다음을 위해 인덱스 증가
+        setFireworksIndex(prev => prev + 1);
         
         // 폭죽 효과 표시
         setShowFireworks(true);
@@ -268,7 +273,6 @@ function UserPage() {
         
         // 3초 후 폭죽 효과 제거 및 풍선 활성화
         setTimeout(() => {
-          console.log(`🎆 폭죽 효과 종료 - 풍선 클릭 다시 활성화`);
           setShowFireworks(false);
           setIsBalloonCooling(false);
         }, 3000);
