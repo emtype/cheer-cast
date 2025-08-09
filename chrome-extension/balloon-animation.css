@@ -16,7 +16,7 @@
 
 /* 피그마 풍선에는 이미 줄이 포함되어 있으므로 추가 세그먼트 제거 */
 
-/* 아름다운 풍선 올라가는 애니메이션 */
+/* 아름다운 풍선 올라가는 애니메이션 (오른쪽에서만, 화면 안쪽으로 움직임) */
 @keyframes float-up {
   0% {
     bottom: -160px;
@@ -28,15 +28,15 @@
   }
   10% {
     bottom: 10vh;
-    transform: translateX(10px) scale(0.85);
+    transform: translateX(-5px) scale(0.85);
   }
   20% {
     bottom: 20vh;
-    transform: translateX(-5px) scale(0.9);
+    transform: translateX(-8px) scale(0.9);
   }
   30% {
     bottom: 30vh;
-    transform: translateX(15px) scale(0.95);
+    transform: translateX(-3px) scale(0.95);
   }
   40% {
     bottom: 40vh;
@@ -44,7 +44,7 @@
   }
   50% {
     bottom: 50vh;
-    transform: translateX(8px) scale(1.05);
+    transform: translateX(-6px) scale(1.05);
   }
   60% {
     bottom: 60vh;
@@ -52,7 +52,7 @@
   }
   70% {
     bottom: 70vh;
-    transform: translateX(6px) scale(0.95);
+    transform: translateX(-4px) scale(0.95);
   }
   80% {
     bottom: 80vh;
@@ -60,7 +60,7 @@
   }
   90% {
     bottom: 90vh;
-    transform: translateX(4px) scale(0.85);
+    transform: translateX(-2px) scale(0.85);
   }
   95% {
     opacity: 1;
@@ -99,8 +99,6 @@
 .delay-3 { animation-delay: -3s; }
 .delay-4 { animation-delay: -4s; }
 .delay-5 { animation-delay: -5s; }
-.delay-6 { animation-delay: -6s; }
-.delay-7 { animation-delay: -7s; }
 
 /* 말풍선 스타일 */
 .speech-bubble {
@@ -220,7 +218,7 @@
   bottom: -12px;
 }
 
-/* 말풍선 애니메이션 */
+/* 말풍선 애니메이션 (오른쪽에서만, 화면 안쪽으로 움직임) */
 @keyframes speech-float {
   0% {
     bottom: -200px;
@@ -229,7 +227,7 @@
   }
   8% {
     opacity: 1;
-    transform: translateX(0px) scale(0.9);
+    transform: translateX(-3px) scale(0.9);
   }
   15% {
     bottom: 15vh;
@@ -237,7 +235,7 @@
   }
   30% {
     bottom: 30vh;
-    transform: translateX(12px) scale(1.02);
+    transform: translateX(-12px) scale(1.02);
   }
   45% {
     bottom: 45vh;
@@ -245,7 +243,7 @@
   }
   60% {
     bottom: 60vh;
-    transform: translateX(10px) scale(0.98);
+    transform: translateX(-10px) scale(0.98);
   }
   75% {
     bottom: 75vh;
@@ -253,7 +251,7 @@
   }
   85% {
     bottom: 85vh;
-    transform: translateX(2px) scale(0.9);
+    transform: translateX(-2px) scale(0.9);
     opacity: 1;
   }
   100% {

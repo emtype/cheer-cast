@@ -75,7 +75,7 @@ chrome-extension/
 
 **풍선이 보이지 않는 경우:**
 1. 아무 웹사이트나 접속해보세요 (이제 모든 사이트에서 작동!)
-2. CheerCast 서버가 실행 중인지 확인 (http://localhost:3001)
+2. CheerCast 서버가 실행 중인지 확인 (https://cheer-cast-production.up.railway.app)
 3. 익스텐션이 활성화되어 있는지 확인
 4. 개발자 도구에서 연결 상태 확인
 

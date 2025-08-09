@@ -4,11 +4,11 @@
   "version": "1.0",
   "description": "CheerCast로 실시간 풍선과 메시지를 보내며 함께 응원하세요!",
   "permissions": ["activeTab"],
-  "host_permissions": ["http://localhost:3001/*"],
+  "host_permissions": ["https://cheer-cast-production.up.railway.app/*"],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "js": ["js/constants.js", "content.js"],
       "css": ["balloon-animation.css"],
       "run_at": "document_end"
     }

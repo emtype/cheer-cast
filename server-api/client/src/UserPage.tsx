@@ -106,7 +106,6 @@ function UserPage() {
     eventSource.onmessage = (event) => {
       try {
         const eventData = JSON.parse(event.data);
-        console.log('이벤트 수신:', eventData);
         
         // 풍선 카운트 증가 및 로컬 스토리지 저장
         if (eventData.type === 'balloon-click' || eventData.type === 'understand-click') {
@@ -116,7 +115,6 @@ function UserPage() {
             return newCount;
           });
         } else if (eventData.type === 'user-stats-update') {
-          console.log('사용자 통계 업데이트 수신:', eventData);
           setUserStats(eventData.userStats);
         }
       } catch (error) {
@@ -193,9 +191,6 @@ function UserPage() {
   const handleBalloonClick = async (balloonType: string, event: React.MouseEvent) => {
     if (isClicking) return; // 중복 클릭 방지
 
-    // 현재 보고 있는 풍선을 API로 전송
-    console.log('클릭한 풍선:', currentBalloonType);
-
     setIsClicking(balloonType);
     createClickEffect(event, balloonType);
     
@@ -213,7 +208,6 @@ function UserPage() {
       }
       
       const result = await response.json();
-      console.log('풍선 클릭 성공:', result);
       
       // 다음 클릭을 위해 새로운 랜덤 풍선 타입 설정
       const nextBalloonType = `balloon${Math.floor(Math.random() * 6) + 1}`;
@@ -234,8 +228,7 @@ function UserPage() {
       
       // 10번 클릭 시 understand 버튼 표시
       if (newClickCount >= 10 && !showUnderstandButton) {
-        setShowUnderstandButton(true);
-        console.log('🎉 10번 클릭 달성! understand 버튼 활성화');
+        setShowUnderstandButton(true);        
       }
       
     } catch (error) {

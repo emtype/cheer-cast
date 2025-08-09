@@ -1,22 +1,34 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const path = require('path');
+const { 
+  MESSAGE_MAX_LENGTH, 
+  TITLE_MAX_LENGTH, 
+  SSE_PING_INTERVAL, 
+  SSE_RECONNECT_DELAY,
+  DEFAULT_TITLE,
+  DEFAULT_PORT 
+} = require('./config/constants');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || DEFAULT_PORT;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const API_BASE_URL = process.env.API_BASE_URL || `http://localhost:${PORT}`;
+const CORS_ORIGINS = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : [
+  'http://localhost:3000', 
+  'http://localhost:3001',
+  /https:\/\/.*\.railway\.app$/,
+  /https:\/\/.*\.up\.railway\.app$/
+];
 
 // 미들웨어 설정
 app.use(helmet({
   contentSecurityPolicy: false // SSE를 위해 CSP 비활성화
 }));
 app.use(cors({
-  origin: [
-    'http://localhost:3000', 
-    'http://localhost:3001',
-    /https:\/\/.*\.railway\.app$/,
-    /https:\/\/.*\.up\.railway\.app$/
-  ],
+  origin: CORS_ORIGINS,
   credentials: true
 }));
 app.use(express.json());
@@ -24,6 +36,46 @@ app.use(express.static(path.join(__dirname, 'client/build')));
 
 // SSE 클라이언트들 관리
 const sseClients = new Set();
+
+// 간단한 rate limiting을 위한 Map (IP별 요청 추적)
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 60000; // 1분
+const MAX_REQUESTS_PER_WINDOW = 60; // 분당 60회
+
+/**
+ * 간단한 rate limiting 미들웨어
+ * @param {Object} req - Express request 객체
+ * @param {Object} res - Express response 객체
+ * @param {Function} next - 다음 미들웨어 함수
+ */
+function rateLimiter(req, res, next) {
+  const clientIP = req.ip || req.connection.remoteAddress;
+  const now = Date.now();
+  
+  if (!rateLimitMap.has(clientIP)) {
+    rateLimitMap.set(clientIP, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    return next();
+  }
+  
+  const clientData = rateLimitMap.get(clientIP);
+  
+  if (now > clientData.resetTime) {
+    // 윈도우 리셋
+    clientData.count = 1;
+    clientData.resetTime = now + RATE_LIMIT_WINDOW;
+    return next();
+  }
+  
+  if (clientData.count >= MAX_REQUESTS_PER_WINDOW) {
+    return res.status(429).json({
+      success: false,
+      error: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.'
+    });
+  }
+  
+  clientData.count++;
+  next();
+}
 
 // 사용자 접속 통계 관리
 const activeSessions = new Set(); // 활성 세션 ID들을 저장
@@ -35,7 +87,7 @@ let userStats = {
 
 // 앱 설정 관리
 let appSettings = {
-  title: '안녕하세요'
+  title: process.env.DEFAULT_APP_TITLE || DEFAULT_TITLE
 };
 
 // 풍선 상태 관리
@@ -45,7 +97,6 @@ let balloonState = {
 
 // SSE 연결 엔드포인트
 app.get('/api/balloon-stream', (req, res) => {
-  console.log('새로운 SSE 클라이언트 연결');
   
   // SSE 헤더 설정
   res.writeHead(200, {
@@ -59,39 +110,66 @@ app.get('/api/balloon-stream', (req, res) => {
   // 클라이언트 등록
   sseClients.add(res);
 
-  // 연결이 끊어졌을 때 정리
-  req.on('close', () => {
-    console.log('SSE 클라이언트 연결 종료');
-    sseClients.delete(res);
-  });
-
-  // Keep-alive ping (30초마다)
+  // Keep-alive ping
   const pingInterval = setInterval(() => {
     if (sseClients.has(res)) {
       res.write(': ping\n\n');
     } else {
       clearInterval(pingInterval);
     }
-  }, 30000);
+  }, SSE_PING_INTERVAL);
+
+  // 연결이 끊어졌을 때 정리
+  req.on('close', () => {
+    sseClients.delete(res);
+    clearInterval(pingInterval);
+  });
 });
 
-// 모든 SSE 클라이언트에게 이벤트 브로드캐스트
+/**
+ * 모든 SSE 클라이언트에게 이벤트 브로드캐스트
+ * @param {Object} eventData - 브로드캐스트할 이벤트 데이터
+ */
 function broadcastEvent(eventData) {
   const message = `data: ${JSON.stringify(eventData)}\n\n`;
-  console.log('브로드캐스트 이벤트:', eventData);
+  const failedClients = [];
   
   sseClients.forEach(client => {
     try {
+      // 연결 상태 확인
+      if (client.destroyed || client.finished) {
+        failedClients.push(client);
+        return;
+      }
+      
       client.write(message);
     } catch (error) {
       console.error('클라이언트 전송 실패:', error);
-      sseClients.delete(client);
+      failedClients.push(client);
+    }
+  });
+  
+  // 실패한 클라이언트들을 정리
+  failedClients.forEach(client => {
+    sseClients.delete(client);
+    try {
+      if (!client.destroyed) {
+        client.end();
+      }
+    } catch (error) {
+      // 클라이언트 정리 실패는 조용히 처리
     }
   });
 }
 
-// 풍선 클릭 이벤트
-app.post('/api/balloon-click', (req, res) => {
+/**
+ * 풍선 클릭 이벤트 API
+ * @route POST /api/balloon-click
+ * @param {Object} req.body - 요청 바디
+ * @param {string} req.body.balloonType - 풍선 타입
+ * @param {number} req.body.clicks - 클릭 횟수
+ */
+app.post('/api/balloon-click', rateLimiter, (req, res) => {
   const { balloonType = 'balloon1', clicks = 1 } = req.body;
   
   // 클릭한 만큼 이벤트 생성
@@ -106,8 +184,6 @@ app.post('/api/balloon-click', (req, res) => {
     broadcastEvent(clickEvent);
   }
   
-  console.log(`🎈 풍선 클릭! ${balloonType} x${clicks}`);
-  
   res.json({ 
     success: true,
     balloonType,
@@ -115,8 +191,13 @@ app.post('/api/balloon-click', (req, res) => {
   });
 });
 
-// understand 클릭 이벤트
-app.post('/api/understand-click', (req, res) => {
+/**
+ * understand 클릭 이벤트 API
+ * @route POST /api/understand-click
+ * @param {Object} req.body - 요청 바디
+ * @param {number} req.body.clicks - 클릭 횟수
+ */
+app.post('/api/understand-click', rateLimiter, (req, res) => {
   const { clicks = 1 } = req.body;
   
   // 클릭한 만큼 이벤트 생성
@@ -130,8 +211,6 @@ app.post('/api/understand-click', (req, res) => {
     
     broadcastEvent(clickEvent);
   }
-  
-  console.log(`🎈 understand 클릭! x${clicks}`);
   
   res.json({ 
     success: true,
@@ -159,16 +238,14 @@ app.post('/api/settings', (req, res) => {
     });
   }
   
-  if (title.length > 50) {
+  if (title.length > TITLE_MAX_LENGTH) {
     return res.status(400).json({
       success: false,
-      error: '제목은 50자 이하여야 합니다'
+      error: `제목은 ${TITLE_MAX_LENGTH}자 이하여야 합니다`
     });
   }
   
   appSettings.title = title.trim();
-  
-  console.log(`⚙️ 설정 업데이트: 제목 = "${appSettings.title}"`);
   
   res.json({
     success: true,
@@ -176,8 +253,13 @@ app.post('/api/settings', (req, res) => {
   });
 });
 
-// 텍스트 메시지 전송 이벤트
-app.post('/api/send-message', (req, res) => {
+/**
+ * 텍스트 메시지 전송 API
+ * @route POST /api/send-message
+ * @param {Object} req.body - 요청 바디
+ * @param {string} req.body.message - 전송할 메시지
+ */
+app.post('/api/send-message', rateLimiter, (req, res) => {
   const { message } = req.body;
   
   // 메시지 검증
@@ -188,11 +270,11 @@ app.post('/api/send-message', (req, res) => {
     });
   }
   
-  // 120자 제한
-  if (message.length > 120) {
+  // 메시지 길이 제한
+  if (message.length > MESSAGE_MAX_LENGTH) {
     return res.status(400).json({ 
       success: false, 
-      error: '메시지는 120자 이하여야 합니다' 
+      error: `메시지는 ${MESSAGE_MAX_LENGTH}자 이하여야 합니다` 
     });
   }
   
@@ -204,8 +286,6 @@ app.post('/api/send-message', (req, res) => {
   };
   
   broadcastEvent(messageEvent);
-  
-  console.log(`💬 텍스트 메시지: "${message}"`);
   
   res.json({ 
     success: true,
@@ -237,8 +317,6 @@ app.post('/api/user-join', (req, res) => {
   
   userStats.currentUsers = activeSessions.size;
   
-  console.log(`👤 사용자 접속 (${sessionId}): 현재 ${userStats.currentUsers}명 온라인`);
-  
   // 관리자에게 사용자 통계 브로드캐스트
   broadcastEvent({
     type: 'user-stats-update',
@@ -269,8 +347,6 @@ app.post('/api/user-leave', (req, res) => {
   }
   
   userStats.currentUsers = activeSessions.size;
-  
-  console.log(`👤 사용자 퇴장 (${sessionId}): 현재 ${userStats.currentUsers}명 온라인`);
   
   // 관리자에게 사용자 통계 브로드캐스트
   broadcastEvent({
@@ -323,18 +399,18 @@ app.get('*', (req, res) => {
 
 // 서버 시작
 app.listen(PORT, () => {
-  console.log(`🚀 CheerCast 응원봇 API 서버가 포트 ${PORT}에서 실행중입니다`);
-  console.log(`📡 SSE 엔드포인트: http://localhost:${PORT}/api/balloon-stream`);
+  console.log(`🚀 CheerCast 응원봇 API 서버가 포트 ${PORT}에서 실행중입니다 (${NODE_ENV})`);
+  console.log(`📡 API Base URL: ${API_BASE_URL}`);
+  console.log(`📡 SSE 엔드포인트: ${API_BASE_URL}/api/balloon-stream`);
 });
 
 // 프로세스 종료 시 정리
 process.on('SIGTERM', () => {
-  console.log('서버 종료 중...');
   sseClients.forEach(client => {
     try {
       client.end();
     } catch (error) {
-      console.error('클라이언트 종료 실패:', error);
+      // 클라이언트 종료 실패 시 조용히 처리
     }
   });
   process.exit(0);
