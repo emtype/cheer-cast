@@ -27,8 +27,24 @@ const CORS_ORIGINS = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split('
 app.use(helmet({
   contentSecurityPolicy: false // SSE를 위해 CSP 비활성화
 }));
+// CORS 설정 - 더 관대한 설정으로 테스트 허용
 app.use(cors({
-  origin: CORS_ORIGINS,
+  origin: (origin, callback) => {
+    // origin이 undefined인 경우 (Playwright 등의 테스트 환경) 허용
+    if (!origin) return callback(null, true);
+    
+    // 설정된 origins 확인
+    const isAllowed = CORS_ORIGINS.some(allowedOrigin => {
+      if (typeof allowedOrigin === 'string') {
+        return allowedOrigin === origin;
+      } else if (allowedOrigin instanceof RegExp) {
+        return allowedOrigin.test(origin);
+      }
+      return false;
+    });
+    
+    callback(null, isAllowed);
+  },
   credentials: true
 }));
 app.use(express.json());

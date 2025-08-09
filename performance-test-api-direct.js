@@ -54,18 +54,18 @@ async function simulateApiUser(userId, browser) {
     const sessionId = `api-test-user-${userId}-${Date.now()}`;
     
     try {
-      const joinResponse = await page.evaluate(async (baseUrl, sessionId) => {
-        const response = await fetch(`${baseUrl}/api/user-join`, {
+      const joinResponse = await page.evaluate(async (params) => {
+        const response = await fetch(`${params.baseUrl}/api/user-join`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId })
+          body: JSON.stringify({ sessionId: params.sessionId })
         });
         return {
           ok: response.ok,
           status: response.status,
           data: await response.json()
         };
-      }, API_CONFIG.API_BASE_URL, sessionId);
+      }, { baseUrl: API_CONFIG.API_BASE_URL, sessionId });
       
       if (joinResponse.ok) {
         console.log(`✅ API User ${userId}: Session registered successfully`);
@@ -84,12 +84,12 @@ async function simulateApiUser(userId, browser) {
         const message = `🌐 API Direct test ${msgIndex + 1}/${API_CONFIG.MESSAGES_PER_USER} from User ${userId} at ${new Date().toLocaleTimeString()}`;
         const startTime = Date.now();
         
-        const response = await page.evaluate(async (baseUrl, msg) => {
+        const response = await page.evaluate(async (params) => {
           try {
-            const response = await fetch(`${baseUrl}/api/send-message`, {
+            const response = await fetch(`${params.baseUrl}/api/send-message`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ message: msg })
+              body: JSON.stringify({ message: params.message })
             });
             
             return {
@@ -106,7 +106,7 @@ async function simulateApiUser(userId, browser) {
               error: error.message
             };
           }
-        }, API_CONFIG.API_BASE_URL, message);
+        }, { baseUrl: API_CONFIG.API_BASE_URL, message });
         
         const responseTime = Date.now() - startTime;
         apiMetrics.responsetimes.push(responseTime);
@@ -140,13 +140,13 @@ async function simulateApiUser(userId, browser) {
     
     // 4. 세션 해제
     try {
-      await page.evaluate(async (baseUrl, sessionId) => {
-        await fetch(`${baseUrl}/api/user-leave`, {
+      await page.evaluate(async (params) => {
+        await fetch(`${params.baseUrl}/api/user-leave`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId })
+          body: JSON.stringify({ sessionId: params.sessionId })
         });
-      }, API_CONFIG.API_BASE_URL, sessionId);
+      }, { baseUrl: API_CONFIG.API_BASE_URL, sessionId });
     } catch (error) {
       console.log(`⚠️ API User ${userId}: Session cleanup error`);
     }
