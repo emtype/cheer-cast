@@ -201,8 +201,46 @@ function connectToServer() {
   }
 }
 
+/**
+ * 현재 페이지가 허용된 PDF인지 확인
+ * @returns {boolean} 허용된 페이지인지 여부
+ */
+function isAllowedPage() {
+  const currentUrl = window.location.href;
+  
+  // 로컬 PDF 파일인지 확인
+  if (!currentUrl.startsWith('file://') || !currentUrl.endsWith('.pdf')) {
+    return false;
+  }
+  
+  // 특정 키워드가 포함된 파일명만 허용 (선택사항)
+  const allowedKeywords = [
+    'presentation', 'vibe', 'coding', '발표', '프레젠테이션',
+    // 필요한 키워드들을 여기에 추가
+  ];
+  
+  // 키워드 체크 (대소문자 구분 없음)
+  const fileName = currentUrl.toLowerCase();
+  const hasAllowedKeyword = allowedKeywords.some(keyword => 
+    fileName.includes(keyword.toLowerCase())
+  );
+  
+  // 키워드가 있거나, 개발 모드에서는 모든 PDF 허용
+  const isDevelopment = currentUrl.includes('/presentation/') || 
+                       currentUrl.includes('/test/') ||
+                       currentUrl.includes('/demo/');
+  
+  return hasAllowedKeyword || isDevelopment;
+}
+
 // 풍선 애니메이션 시작
 function startBalloonAnimation() {
+  // 허용된 페이지에서만 실행
+  if (!isAllowedPage()) {
+    console.log('CheerCast: 허용되지 않은 페이지입니다.');
+    return;
+  }
+  
   // 서버 연결
   connectToServer();
   
