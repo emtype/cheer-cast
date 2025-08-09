@@ -30,6 +30,13 @@ function UserPage() {
     lastVisit: null
   });
   
+  // 폭죽 효과 상태 관리 (3초 쿨다운용)
+  const [isBalloonCooling, setIsBalloonCooling] = useState(false);
+  
+  // 폭죽 효과 상태 관리
+  const [showFireworks, setShowFireworks] = useState(false);
+  const [fireworksData, setFireworksData] = useState({ imageNumber: 1, message: "" });
+  
   // 세션 ID 생성 (탭마다 고유, 새로고침해도 유지)
   const [sessionId] = useState(() => {
     // sessionStorage에서 기존 세션 ID 확인
@@ -189,7 +196,7 @@ function UserPage() {
   };
 
   const handleBalloonClick = async (balloonType: string, event: React.MouseEvent) => {
-    if (isClicking) return; // 중복 클릭 방지
+    if (isClicking || isBalloonCooling) return; // 중복 클릭 및 쿨다운 방지
 
     setIsClicking(balloonType);
     createClickEffect(event, balloonType);
@@ -230,8 +237,46 @@ function UserPage() {
       const newClickCount = totalClicks + 1;
       setTotalClicks(newClickCount);
       
-      // 10번 클릭 시 understand 버튼 표시
+      console.log(`🎈 풍선 클릭: ${newClickCount}번째 클릭`);
+      
+      // 10번마다 폭죽 효과 표시
+      if (newClickCount % 10 === 0 && newClickCount > 0) {
+        console.log(`🎉 10의 배수 달성! ${newClickCount}번째 클릭 - 폭죽 효과 시작!`);
+        
+        // 랜덤 이미지와 메시지 한번만 선택
+        const randomImageNumber = Math.floor(Math.random() * 3) + 1;
+        const encouragementMessages = [
+          "AI 전사가 됐구만, 이제 전장에서 검증해 봅시다",
+          "오늘 배운 건 데모고, 진짜는 내일 여러분의 모니터 앞에서 시작됩니다.",
+          "AI는 도구, 성과는 여러분 손끝에서",
+          "지식은 가방에, 실행은 손에. 이제 꺼내 쓸 차례입니다.",
+          "이제 AI와 같이 달립시다. 속도 제한은 없습니다.",
+          "오늘의 '와~'를 내일의 '완료!'로 바꿔봅시다.",
+          "머리로만 배운 AI는 장식입니다. 손으로 써야 무기죠.",
+          "여기서 그치면 그냥 강의, 해보면 혁신.",
+          "속도가 무기인 시대, AI가 가속페달입니다. 밟으세요.",
+          "여러분의 첫 AI 실전 프로젝트, 지금부터 카운트다운 시작입니다."
+        ];
+        const randomMessage = encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
+        
+        // 폭죽 데이터 설정
+        setFireworksData({ imageNumber: randomImageNumber, message: randomMessage });
+        
+        // 폭죽 효과 표시
+        setShowFireworks(true);
+        setIsBalloonCooling(true); // 3초간 풍선 클릭 비활성화
+        
+        // 3초 후 폭죽 효과 제거 및 풍선 활성화
+        setTimeout(() => {
+          console.log(`🎆 폭죽 효과 종료 - 풍선 클릭 다시 활성화`);
+          setShowFireworks(false);
+          setIsBalloonCooling(false);
+        }, 3000);
+      }
+      
+      // 10번 클릭 시 understand 버튼 표시 (최초 1회만)
       if (newClickCount >= 10 && !showUnderstandButton) {
+        console.log(`💡 understand 버튼 표시 - ${newClickCount}번째 클릭`);
         setShowUnderstandButton(true);        
       }
       
@@ -370,6 +415,11 @@ function UserPage() {
           }`}></div>
           {connected ? '연결됨' : '연결 끊어짐'}
         </div>
+        
+        {/* 디버깅용 상태 표시 */}
+        <div className="mt-2 text-xs text-gray-400">
+          클릭수: {totalClicks} | 폭죽: {showFireworks ? 'ON' : 'OFF'}
+        </div>
       </header>
 
       {/* Main Content */}
@@ -424,7 +474,9 @@ function UserPage() {
                   </div>
                 </div>
               
-              <button
+              {/* 쿨다운 상태일 때는 풍선 숨김 */}
+              {!isBalloonCooling && (
+                <button
                 className={`w-12 h-12 md:w-16 md:h-16 bg-gradient-to-r from-gray-600 to-gray-700 border border-gray-500/50 rounded-2xl cursor-pointer transition-all duration-300 shadow-lg shadow-gray-700/30 relative group hover:from-gray-500 hover:to-gray-600
                   ${isClicking === 'balloon' ? 'scale-95' : 'hover:scale-110 hover:shadow-xl hover:shadow-gray-600/40'}
                   ${isClicking !== null ? 'opacity-60 cursor-not-allowed' : ''}
@@ -443,6 +495,7 @@ function UserPage() {
                   />
                 </div>
               </button>
+              )}
               </div>
               
               {/* Understand Button */}
@@ -493,6 +546,55 @@ function UserPage() {
           </div>
         </div>
       </main>
+      
+      {/* 폭죽 효과 오버레이 */}
+      {showFireworks && (
+        <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center bg-black bg-opacity-50">
+          {/* 폭죽 파티클들 */}
+          {Array.from({length: 20}).map((_, i) => (
+            <div
+              key={i}
+              className="absolute animate-bounce text-4xl"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 0.5}s`,
+                animationDuration: `${0.8 + Math.random() * 0.4}s`
+              }}
+            >
+              {['🎉', '🎊', '✨', '🌟', '💫', '🎈'][Math.floor(Math.random() * 6)]}
+            </div>
+          ))}
+          
+          {/* 중앙 캐릭터와 말풍선 */}
+          <div className="flex flex-col items-center justify-center z-10">
+            {/* 말풍선 */}
+            <div className="relative bg-white text-gray-800 text-lg md:text-xl font-bold px-6 py-4 rounded-2xl shadow-2xl border-4 border-yellow-400 mb-4 max-w-md text-center">
+              {fireworksData.message}
+              {/* 말풍선 꼬리 */}
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0" style={{
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent', 
+                borderTop: '6px solid white'
+              }}></div>
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 -mt-1" style={{
+                borderLeft: '8px solid transparent',
+                borderRight: '8px solid transparent',
+                borderTop: '8px solid #facc15'
+              }}></div>
+            </div>
+            
+            {/* 캐릭터 이미지 */}
+            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-yellow-400 shadow-2xl overflow-hidden bg-white animate-bounce">
+              <img 
+                src={`/images/${fireworksData.imageNumber}.jpg`} 
+                alt="축하 캐릭터"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

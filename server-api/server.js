@@ -428,8 +428,8 @@ app.get('/api/user-stats', (req, res) => {
   });
 });
 
-// API 상태 페이지 (React 빌드 없이)
-app.get('/', (req, res) => {
+// API 상태 페이지 (API 경로용)
+app.get('/api', (req, res) => {
   res.json({
     name: "CheerCast API Server",
     status: "running",
@@ -450,13 +450,15 @@ app.get('/', (req, res) => {
   });
 });
 
-// 나머지 모든 경로는 404
+// React 앱을 위한 catch-all 라우트 (API 경로가 아닌 모든 경로)
 app.get('*', (req, res) => {
-  res.status(404).json({
-    error: "Not Found",
-    message: "API endpoint not found",
-    availableEndpoints: "/api/*"
-  });
+  // API 경로는 제외
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  
+  // React 앱의 index.html 서빙
+  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
 });
 
 // 서버 시작
