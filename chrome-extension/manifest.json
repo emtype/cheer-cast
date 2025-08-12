@@ -7,7 +7,7 @@
   "host_permissions": ["https://cheer-cast-production.up.railway.app/*"],
   "content_scripts": [
     {
-      "matches": ["file:///*"],
+      "matches": ["file:///*", "https://wiki.fin.navercorp.com/*"],
       "js": ["js/constants.js", "content.js"],
       "css": ["balloon-animation.css"],
       "run_at": "document_end"
